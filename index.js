@@ -4,27 +4,14 @@ var fs = require("fs");
 var url = require("url");
 var appPort = 8000;
 var domain = require("domain").create();
-domain.on("error", function (e) {
-    console.log('Caught error', e);
-});
+domain.on("error", function (e) {console.log('Caught error', e);});
 domain.run(function () {
 // cache.manifest
     watchFolder("pages", watchManifest);
     watchFolder("src", watchAPI);
 
-    /*
-     http.Server(function (req, res) {
-     var pathname = url.parse(req.url).pathname;
-     if (pathname.substr(pathname.length - 5) == ".aspx") {     //响应接口文件
-     require("./src" + pathname.substr(0, pathname.length - 4) + "js").handler(req, res);
-     } else {                                                    //响应静态文件
-     staticFiles(pathname, res);
-     }
-     }).listen(appPort);
-     */
-
-
     var connect = require('connect');
+    var server;
 
     function startServer() {
         var api = require("./src/api.js");
@@ -38,22 +25,13 @@ domain.run(function () {
                 .use('/api.aspx', api.exit)
                 .use(connect.static('pages', {index:'index.htm'}))
             ;
-        var server = http.createServer(app);
-
+        server = http.createServer(app);
         server.listen(appPort);
     }
+
     startServer();
 
-
-//watchAPI files
-    function watchAPI(event, filename) {
-        var p = process.cwd() + "\\src\\" + filename;
-        console.log("api file:'" + p + "' Updated!");
-        delete require.cache[p];
-
-    }
-
-//a tool to watch the deeper folder
+    //a tool to watch the deeper folder
     function watchFolder(folder, watch) {
         fs.readdirSync(folder).forEach(function (item) {
             try {
@@ -67,6 +45,21 @@ domain.run(function () {
             fs.watch(folder + '/' + item, watch);
         });
     }
+
+//watchAPI files
+    function watchAPI(event, filename) {
+        if(event != "change")return;
+        var p = process.cwd() + "\\src\\" + filename;
+        console.log("api file:'" + p + "' Updated!");
+        delete require.cache[p];
+        try{
+            server.close(startServer);
+        }catch(e){
+            startServer();
+        }
+    }
+
+
 
 //cache.manifest
     function watchManifest(event, filename) {
@@ -95,24 +88,4 @@ domain.run(function () {
             }
         });
     };
-
-
-//serve static files
-    /*
-     function staticFiles(pathname, res) {
-     if (pathname == "/")pathname = "/index.htm";
-     var mime = {
-     htm:"text/html",
-     css:"text/css",
-     png:"image/png",
-     jpg:"image/jpeg",
-     js:"application/javascript",
-     manifest:"text/cache-manifest"
-     };
-     res.setHeader("Content-Type", mime[path.extname(pathname).substr(1)]);
-
-     var stream = fs.createReadStream("./pages/" + pathname, {flags : "r", encoding : null});
-     stream.on("error", function() {res.writeHead(404);res.end();});
-     stream.pipe(res);
-     }*/
 })

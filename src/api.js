@@ -1,7 +1,6 @@
-﻿//database
+﻿ //database
 var redis = require("redis");
 var rds = redis.createClient();
-
 
 exports.init = function (req, res, next) {
     res.setHeader("Content-Type", "text/json");				//Json格式
@@ -294,10 +293,8 @@ function deleteResource() {
     var name = form.name;
     //检查资源是否存在
     if (!data.resources[name]) throw "resource dose not exist";
-
     delete data.resources[name];
 }
-
 
 //-------------------------------------------------------工具函数---------------------------------------------
 function getData(data, callback) {
