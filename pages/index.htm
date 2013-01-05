@@ -1,0 +1,414 @@
+﻿<!DOCTYPE html>
+<html manifest="cache.manifest">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Projects Manager</title>
+    <meta id="viewport" name="viewport" content="width=device-width,maximum-scale=1.0,minimum-scale=1.0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="white"/>
+    <meta name="format-detection" content="telephone=no">
+
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="icon.png"/>
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="itouch.png"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ipad.png"/>
+
+    <link rel="Stylesheet" href="css/css.css"/>
+    <link rel="Stylesheet" href="css/pc.css" media="screen and (min-width: 1025px)"/>
+    <link rel="Stylesheet" href="css/dialogue.css"/>
+    <link rel="Stylesheet" href="css/grid.css"/>
+
+    <script type="text/javascript" src="js/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="js/jquery.form.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+    <script type="text/javascript" src="js/projects.js"></script>
+    <script type="text/javascript" src="js/resources.js"></script>
+    <script type="text/javascript" src="js/js.js"></script>
+</head>
+<body>
+<div id="container">
+    <div id="parent">
+        <div id="timeline" style="position: relative; overflow: hidden; z-index: 0">
+            <table id="dates" style="width: 100%; height: 100%;" cellpadding="0" cellspacing="0">
+                <tr id="mon">
+                </tr>
+                <tr id="date">
+                </tr>
+                <tr id="grid">
+                </tr>
+            </table>
+            <div id="linesclip" class="clip">
+                <div id="lines">
+                </div>
+            </div>
+        </div>
+        <div id="namesclip" class="clip">
+            <div id="names">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="label"
+     style="z-index: 100; display: block; position: absolute; bottom: 20px; left: 10px; width: 249px">
+</div>
+<a href="javascript:void(0)" id="btnAdd" style="right: 15px">
+    <img alt="add" src="img/add.png" width="33" height="29"/>
+</a>
+<!--
+<a href="javascript:void(0)" id="btnRefresh" style="right: 60px">
+    <img alt="add" src="img/refresh.png" width="33" height="29"/>
+</a>
+-->
+<a href="javascript:void(0)" id="btnLogout" style="right: 60px">
+    <img alt="add" src="img/logout.png" width="33" height="29"/>
+</a>
+<a href="javascript:void(0)" id="btnSwitch" style="right: 105px">
+    <img alt="add" src="img/refresh.png" width="33" height="29"/>
+</a>
+<!--							    dialogues									                -->
+<table id="back"
+       style="position: absolute; display: none; z-index: 103; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); top: 0; left: 0; padding: 0; border-spacing: 0"
+       cellpadding="0">
+<tr>
+<td id="backtd" valign="middle" align="center" style="width: 100%; height: 100%">
+<!--								login											            -->
+<form id="login" class="dialogue" action="api.aspx" method="post">
+    <input type="hidden" name="action" value="login"/>
+
+
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Login
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td>
+                User:
+            </td>
+            <td>
+                <input type="text" name="user" required="required" autofocus="autofocus"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pass:
+            </td>
+            <td>
+                <input type="password" name="pass" required="required"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            </td>
+            <td>
+                <input type="button" name="register" value="Register"/>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" id="logins">
+            </td>
+        </tr>
+    </table>
+</form>
+<!--								insert new project											-->
+<form id="newProject" action="api.aspx" class="dialogue" method="post">
+    <input type="hidden" name="action" value="addproject"/>
+
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Add New Project
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td>
+                name:
+            </td>
+            <td>
+                <input type="text" name="name"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                start:
+            </td>
+            <td>
+                <input type="date" name="startdate"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                end:
+            </td>
+            <td>
+                <input type="date" name="enddate"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                desc:
+            </td>
+            <td>
+                <textarea name="content" rows="3" cols="12"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                color:
+            </td>
+            <td>
+                <input type="radio" name="color" value="#158fe2" checked="checked"/>
+                <input type="radio" name="color" value="#2ec000"/>
+                <input type="radio" name="color" value="#ffa019"/>
+                <input type="radio" name="color" value="grey"/>
+                <input type="radio" name="color" value="#8b1aa7"/>
+                <input type="radio" name="color" value="#d8c928"/>
+            </td>
+        </tr>
+    </table>
+</form>
+<!--						        update project												-->
+<form id="updateProject" class="dialogue" action="api.aspx" method="post">
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+
+    <input type="hidden" name="action" value="updateproject"/>
+    <input type="hidden" name="id" value=""/>
+    <input type="hidden" name="prjname" value=""/>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Update Project
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td style="width: 15%">
+                Name:
+            </td>
+            <td style="width: 85%">
+                <input type="text" name="name"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Start:
+            </td>
+            <td>
+                <input type="date" name="startdate"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                End:
+            </td>
+            <td>
+                <input type="date" name="enddate"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Desc:
+            </td>
+            <td>
+                <textarea name="content" rows="3" cols="12"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Color:
+            </td>
+            <td>
+                <input type="radio" name="color" value="#158fe2"/>
+                <input type="radio" name="color" value="#2ec000"/>
+                <input type="radio" name="color" value="#ffa019"/>
+                <input type="radio" name="color" value="grey"/>
+                <input type="radio" name="color" value="#8b1aa7"/>
+                <input type="radio" name="color" value="#d8c928"/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="button" name="delete" value="DEL"/>
+            </td>
+        </tr>
+    </table>
+</form>
+<!--								add	timepoint												-->
+<form id="addpoint" class="dialogue" action="api.aspx" method="post">
+    <input type="hidden" name="action" value="addpoint"/>
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Add New TimePoint
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td>
+                date:
+            </td>
+            <td>
+                <input type="date" name="point"/>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 25%">
+                content:
+            </td>
+            <td style="width: 75%">
+                <input type="hidden" name="project"/>
+                <textarea rows="6" name="content"></textarea>
+            </td>
+        </tr>
+    </table>
+</form>
+<!--								update	timepoint											-->
+<form id="updatepoint" class="dialogue" action="api.aspx" method="post">
+    <input type="hidden" name="action" value="updatepoint"/>
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Update TimePoint
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td style="width: 25%">
+                Project:
+            </td>
+            <td style="width: 75%">
+                <a name="projectname" href="javascript:void(0)"></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                date:
+            </td>
+            <td>
+                <input type="hidden" name="id"/>
+                <input type="hidden" name="project"/>
+                <input type="date" name="point"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                content:
+            </td>
+            <td>
+                <textarea rows="6" name="content"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                done:
+            </td>
+            <td>
+                <input type="checkbox" name="done"/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="button" name="delete" value="DEL"/>
+            </td>
+        </tr>
+    </table>
+</form>
+<!--								Add Resources												-->
+<form id="addResource" action="api.aspx" class="dialogue" method="post">
+    <input type="hidden" name="action" value="addresource"/>
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Add New Resource
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td>
+                name:
+            </td>
+            <td>
+                <input type="text" name="name"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                desc:
+            </td>
+            <td>
+                <textarea name="desc" rows="3" cols="12"></textarea>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<!--								Add Project to Resources									-->
+<form id="updateResource" action="api.aspx" class="dialogue" method="post">
+    <input type="hidden" name="action" value="updateresource"/>
+    <img name="close" src="img/close.png"/>
+    <input type="submit" value=""/>
+    <input type="hidden" name="name" value=""/>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">
+                Update Resource
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td style="width: 40px">Name:</td>
+            <td style="text-indent: 0">
+                <span name="name"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>Projects:</td>
+            <td>
+                <div name="projects"
+                     style="width:180px;height:200px;overflow-y:scroll;overflow-x:hidden;text-align:left">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="button" name="delete" value="DEL"/>
+            </td>
+        </tr>
+    </table>
+</form>
+</td>
+</tr>
+</table>
+<div id="loading"></div>
+</body>
+</html>

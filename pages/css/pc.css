@@ -1,0 +1,8 @@
+﻿#lines div,#lines a,#lines span
+{
+	cursor:pointer;
+}
+#lines span
+{
+    cursor:default;
+}

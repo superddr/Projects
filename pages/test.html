@@ -1,0 +1,496 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mocha Tests</title>
+    <link rel="stylesheet" href="mocha.css"/>
+</head>
+<body>
+<div id="mocha"></div>
+<script src="js/jquery-1.7.2.js"></script>
+<script src="http://chaijs.com/chai.js"></script>
+<script src="mocha.js"></script>
+<script>
+    window.assert = chai.assert
+    mocha.setup('tdd')
+</script>
+
+<script>
+var name = Math.random();
+var pass = Math.random();
+
+function checkRight(result, state, xhr) {
+    assert.equal(state, "success", "state:" + state);
+    assert.isUndefined(result.message, result.message);
+    assert.isTrue(result.auth, "not authorized");
+}
+
+function checkWrong(result, state, xhr) {
+    assert.equal(state, "success", "state:" + state);
+    assert.isString(result.message, 'it should fail');
+}
+
+$("body").ajaxError(function (e, response, xhr) {
+    throw "Server error:" + response.responseText;
+})
+
+function api(action, option, callback) {
+    var opt = {action:action};
+    if (option instanceof Function) {
+        callback = option;
+    } else {
+        for (var i in option) {
+            opt[i] = option[i];
+        }
+    }
+    $.post('api.aspx', opt, callback);
+}
+
+suite('register', function () {
+    test('normal register', function (done) {
+        api("regist", { user:name, pass:pass}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            assert.equal(result.user, name);
+            $.post('api.aspx', function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                assert.equal(result.user, name);
+                assert.isObject(result.projects);
+                assert.isObject(result.resources);
+                done();
+            });
+        });
+    });
+
+    test('no param', function (done) {
+        api("regist", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+    test('dup register', function (done) {
+        api("regist", { user:name, pass:pass}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+    test('password too short', function (done) {
+        api("regist", { user:Math.random(), pass:"1"}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+})
+
+suite("login", function () {
+    test('wrong passwor', function (done) {
+        api("login", {user:name, pass:pass + "1"}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            assert.isFalse(result.auth);
+            done();
+        });
+    });
+    test('wrong username', function (done) {
+        api("login", {user:Math.random(), pass:pass}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            assert.isFalse(result.auth);
+            done();
+        });
+    });
+    test('normal login', function (done) {
+        api("login", {user:name, pass:pass}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                done();
+            })
+        });
+    });
+});
+
+
+suite("addProject", function () {
+    var start = new Date();
+    start.setDate(start.getDate() - 10);
+
+    var end = new Date();
+    end.setDate(end.getDate() + 10);
+
+    test('normal add', function (done) {
+        api("addproject", {name:"new p", startdate:start, enddate:end, content:"nothing", color:"#158fe2"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    var proj = result.projects[p];
+                    assert.equal(proj.name, "new p");
+                    assert.closeTo(proj.startdate, start.getTime(), 3000);
+                    assert.closeTo(proj.enddate, end.getTime(), 3000);
+                    assert.equal(proj.color, "#158fe2");
+                    assert.equal(proj.content, "nothing");
+                    return done();
+                }
+                assert.fail("project not added");
+            })
+        });
+    });
+    test('normal add2', function (done) {
+        api("addproject", {name:"new p2", startdate:start, enddate:end, content:"nothing2", color:"#158fe3"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    var proj = result.projects[p];
+                    if (proj.name != "new p2")continue;
+                    assert.equal(proj.name, "new p2");
+                    assert.closeTo(proj.startdate, start.getTime(), 3000);
+                    assert.closeTo(proj.enddate, end.getTime(), 3000);
+                    assert.equal(proj.color, "#158fe3");
+                    assert.equal(proj.content, "nothing2");
+                    return done();
+                }
+                assert.fail("project not added");
+            })
+        });
+    });
+    test('wrong date', function (done) {
+        start.setDate(start.getDate() + 500);
+        end.setDate(end.getDate() - 500);
+
+        api("addproject", {name:"new p", startdate:start, enddate:end, content:"nothing"}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("addproject", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+});
+
+
+suite("updateProject", function () {
+    var pid;
+    test('get projects', function (done) {
+        api("", function (result, state, xhr) {
+            for (var p in result.projects) {
+                pid = result.projects[p].id;
+            }
+            assert.notEqual(pid, undefined);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("updateproject", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+
+    test('normal update', function (done) {
+        api("updateproject", {id:pid, name:"updated", startdate:new Date(), enddate:new Date(), color:"#123456", content:"jjww"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    var proj = result.projects[p];
+                    if (proj.name != "updated")continue;
+                    assert.equal(proj.name, "updated");
+                    assert.closeTo(proj.startdate, new Date().getTime(), 3000);
+                    assert.closeTo(proj.enddate, new Date().getTime(), 3000);
+                    assert.equal(proj.color, "#123456");
+                    assert.equal(proj.content, "jjww");
+                    return done();
+                }
+                assert.fail("project not added");
+            })
+        });
+    });
+});
+
+suite("deleteProject", function () {
+    var pid;
+    test('get projects', function (done) {
+        api("", function (result, state, xhr) {
+            for (var p in result.projects) {
+                pid = result.projects[p].id;
+            }
+            assert.notEqual(pid, undefined);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("deleteproject", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+
+    test('normal delete', function (done) {
+        api("deleteproject", {id:pid}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    if (result.projects[p].id != pid)continue;
+                    assert.fail("project not added");
+                }
+                done();
+            })
+        });
+    });
+});
+
+suite("addPoint", function () {
+    var pid;
+    test('get projects', function (done) {
+        api("", function (result, state, xhr) {
+            for (var p in result.projects) {
+                pid = result.projects[p].id;
+            }
+            assert.notEqual(pid, undefined);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("addpoint", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        });
+    });
+
+    test('normal add', function (done) {
+        api("addpoint", {project:pid, point:"2012/12/01", content:"test point"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    if (result.projects[p].id != pid)continue;
+                    for (var t in result.projects[p].points) {
+                        if (result.projects[p].points[t].content == "test point") return done();
+                    }
+                }
+                assert.fail("point not added");
+            })
+        });
+    })
+
+    test('add with no content', function (done) {
+        api("addpoint", {project:pid, point:"2012/12/12"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    if (result.projects[p].id != pid)continue;
+                    for (var t in result.projects[p].points) {
+                        if (result.projects[p].points[t].content == "") return done();
+                    }
+                }
+                assert.fail("point not added");
+            })
+        });
+    });
+
+    test('add with duplicated date', function (done) {
+        api("addpoint", {project:pid, point:"2012/12/01", content:"sss"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                checkRight(result, state, xhr);
+                for (var p in result.projects) {
+                    if (result.projects[p].id != pid)continue;
+                    for (var t in result.projects[p].points) {
+                        if (result.projects[p].points[t].content == "test point\nsss")
+                            return done();
+                    }
+                }
+                assert.fail("point not added");
+            })
+        });
+    });
+});
+
+suite("updatePoint", function () {
+    var pid, point;
+    test('get projects', function (done) {
+        api("", function (result, state, xhr) {
+            for (var p in result.projects) {
+                pid = result.projects[p].id;
+                for (var pi in result.projects[p].points) {
+                    point = result.projects[p].points[pi].id;
+                }
+            }
+            assert.notEqual(pid, undefined);
+            assert.notEqual(point, undefined);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("updatepoint", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    })
+
+    test('normal update', function (done) {
+        api("updatepoint", {id:point, project:pid, point:"2013/03/03", content:"22 22"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                for (var p in result.projects) {
+                    if (pid != result.projects[p].id)continue;
+
+                    for (var pi in result.projects[p].points) {
+                        if (point != result.projects[p].points[pi].id)continue;
+                        assert.equal(result.projects[p].points[pi].content, "22 22");
+                        return done();
+                    }
+                }
+                assert.fail("point not found");
+            });
+        })
+    })
+    test('lack param', function (done) {
+        api("updatepoint", {id:point, project:pid}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    })
+    test('lack param', function (done) {
+        api("updatepoint", {id:point}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    })
+    test('lack param', function (done) {
+        api("updatepoint", {project:pid}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    })
+});
+suite("deletePoint", function () {
+    var pid, point;
+    test('get projects', function (done) {
+        api("", function (result, state, xhr) {
+            for (var p in result.projects) {
+                pid = result.projects[p].id;
+                for (var pi in result.projects[p].points) {
+                    point = result.projects[p].points[pi].id;
+                }
+            }
+            assert.notEqual(pid, undefined);
+            assert.notEqual(point, undefined);
+            done();
+        });
+    });
+
+    test('no param', function (done) {
+        api("deletepoint", function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    })
+    test('normal delete', function (done) {
+        api("deletepoint", {id:point, project:pid}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                for (var p in result.projects) {
+                    if (pid != result.projects[p].id)continue;
+
+                    for (var pi in result.projects[p].points) {
+                        if (point != result.projects[p].points[pi].id)continue;
+                        return assert.fail("point not deleted");
+                    }
+                }
+                done();
+
+            });
+        })
+    })
+});
+
+suite('add resource', function () {
+    test('normal add', function (done) {
+        api("addresource", {name:"test resource", desc:"test content"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                for (var r in result.resources) {
+                    if (r == "test resource" && result.resources[r].desc == "test content") {
+                        return done();
+                    }
+                }
+                assert.fail("resource not found");
+            });
+        })
+    });
+})
+
+suite('update resource', function () {
+    var rname;
+    test('get resource', function (done) {
+        api("", function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            for (var r in result.resources) {
+                rname = r;
+                return done();
+            }
+            assert.fail("resource not found");
+        });
+    });
+    test('normal update', function (done) {
+        api("updateresource", {name:rname, desc:"nn mm"}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                if (result.resources[rname] && result.resources[rname].desc == "nn mm") return done();
+                assert.fail("resource not found");
+            });
+        })
+    });
+    test('wrong update', function (done) {
+        api("updateresource", {name:"no such resource"}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    });
+})
+
+suite('delete resource', function () {
+    var rname;
+    test('get resource', function (done) {
+        api("", function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            for (var r in result.resources) {
+                rname = r;
+                return done();
+            }
+            assert.fail("resource not found");
+        });
+    });
+    test('normal delete', function (done) {
+        api("deleteresource", {name:rname}, function (result, state, xhr) {
+            checkRight(result, state, xhr);
+            api("", function (result, state, xhr) {
+                for (var r in result.resources) {
+                    if (r == rname)
+                        assert.fail("resource still there");
+                }
+                done();
+            });
+        })
+    });
+    test('wrong delete', function (done) {
+        api("deleteresource", {name:"no such resource"}, function (result, state, xhr) {
+            checkWrong(result, state, xhr);
+            done();
+        })
+    });
+})
+
+mocha.run();
+</script>
+</body>
+</html>

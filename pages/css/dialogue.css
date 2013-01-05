@@ -1,0 +1,150 @@
+input:invalid{
+    border-color: #e88;
+    background-color:yellow;
+    -webkit-box-shadow: 0 0 5px rgba(255, 0, 0, .8);
+}
+
+form.dialogue
+{
+    background-image:url(../img/backblack.png);
+    width:320px;
+    padding:40px 0;
+    border-radius:15px;
+    box-shadow:0px 8px 8px rgba(255, 255, 255, 0.08) inset;
+}
+form.dialogue table
+{
+    width: 290px;
+    background-color: white;
+    border-radius: 10px;
+    border:none;
+    text-align: left;
+    text-indent:20px;
+    font-size:14px;
+    color:#808080;
+    background-image:url(../img/backwhite.png);
+    padding-bottom:30px;
+    box-shadow:0px 8px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+input,textarea
+{
+    width:200px;
+    float:left;
+    color:#444;
+    font-size:14px;
+    box-sizing:border-box;
+    padding:0;
+}
+
+input[type=checkbox]
+{
+    width:180px;
+}
+
+input[type=text],textarea,input[type=password]
+{
+    background-color:transparent;
+    border:solid 1px grey;
+    text-align:left;
+    outline: none;
+    border-radius: 3px;
+    padding:3px;
+}
+
+form.dialogue input[type=submit]
+{
+    -webkit-appearance: none;
+    width:54px;
+    height:29px;
+    float:right;
+    margin:-27px 14px 8px auto;
+    background-image:url(../img/done.png);
+    background-size:54px 29px;
+    background-color:transparent;
+    border:none;
+}
+
+input[type=button]
+{
+    background-color:transparent;
+    border:solid 1px grey;
+    border-radius:0px;
+    height:26px;
+    margin:3px 0;
+}
+
+input[name=delete]
+{
+    -webkit-appearance: none;
+    color:#ea2e41;
+    width:87%;
+    margin-left:20px;
+    background-color:rgba(255, 0, 0, 0.05);
+}
+
+form.dialogue img[name=close]
+{
+    width:60px;
+    height:28px;
+    float:left;
+    margin:-27px auto 8px 14px;
+    cursor:pointer;
+}
+
+form.dialogue a
+{
+    float:left;
+    text-decoration:underline;
+    color:#a32330;
+    text-indent:0px;
+}
+
+form.dialogue thead th
+{
+    text-align:left;
+    color:#be374b;
+    font-family:Arial;
+    text-indent:19px;
+    font-size:18px;
+    padding-top:12px;
+}
+
+input[name=color],input[name=project]
+{
+    width:25px;
+    height:25px;
+    -webkit-appearance: none;
+    appearance:none;
+    cursor:pointer;
+}
+
+input[name=color]:checked,input[name=project]:checked
+{
+    border:solid #333 3px;
+}
+
+#updateResource [name=projects] div {
+    height:28px;
+    padding-bottom: 3px;
+    overflow: hidden;
+    width: 300px;
+    text-indent: 0;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 30px;
+}
+
+#logins div
+{
+    width:87%;
+    height:22px;
+    font-size:14px;
+    margin:5px 12px;
+    border:#cecdcd 1px solid;
+    background-color:rgba(239,227,225,0.5);
+    color:#ea3749;
+    padding-top:3px;
+    cursor:pointer;
+}

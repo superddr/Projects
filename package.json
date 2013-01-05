@@ -1,0 +1,22 @@
+{
+  "name": "Projects",
+  "version": "0.2.0",
+  "description": "ERROR: No README.md file found!",
+  "main": "index.js",
+  "dependencies": {
+    "chai": "~1.4.2",
+    "connect": "~2.7.1",
+    "cookie": "~0.0.5",
+    "redis": "~0.8.2",
+    "underscore": "~1.4.3"
+  },
+  "devDependencies": {
+    "mocha": "~1.7.4"
+  },
+  "scripts": {
+    "test": "mocha -u tdd"
+  },
+  "repository": "",
+  "author": "",
+  "license": "BSD"
+}
